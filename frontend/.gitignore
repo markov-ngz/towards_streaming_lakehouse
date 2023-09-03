@@ -24,4 +24,4 @@ dist-ssr
 *.sw?
 
 # ignore the config file
-/backend/config.js
+backend/config.js
