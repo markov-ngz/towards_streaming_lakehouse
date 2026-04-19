@@ -1,0 +1,1 @@
+kubectl logs coordinator-server-0 -n fluss --tail 200 > .logs

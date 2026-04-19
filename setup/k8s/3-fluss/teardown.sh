@@ -1,0 +1,1 @@
+ helm uninstall fluss -n fluss

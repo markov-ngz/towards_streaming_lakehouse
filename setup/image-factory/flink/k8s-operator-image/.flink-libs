@@ -1,0 +1,5 @@
+├── lib
+│   └── flink-s3-fs-hadoop-1.20.1.jar
+└── plugins
+    └── s3-fs-hadoop
+        └── flink-s3-fs-hadoop-1.20.1.jar

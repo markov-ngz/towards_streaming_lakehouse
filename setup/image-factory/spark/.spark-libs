@@ -1,0 +1,7 @@
+spark
+├── extra-jars
+│   ├── iceberg-aws-bundle-1.10.1.jar
+│   └── iceberg-spark-runtime-4.0_2.13-1.10.1.jar
+└── jars
+    ├── bundle-2.42.35.jar
+    └── hadoop-aws-3.4.1.jar

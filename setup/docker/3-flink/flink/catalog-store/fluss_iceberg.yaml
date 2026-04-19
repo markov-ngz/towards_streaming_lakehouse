@@ -1,0 +1,12 @@
+type: fluss
+bootstrap.servers: coordinator-server:9123
+iceberg.io-impl: org.apache.iceberg.aws.s3.S3FileIO
+iceberg.catalog.name: dev_iceberg_datalake_catalog
+iceberg.warehouse: dev_iceberg_datalake_catalog
+iceberg.s3.region: eu-north-1
+iceberg.type: rest
+iceberg.rest.auth.type: OAUTH2
+iceberg.uri: http://polaris:8181/api/catalog
+iceberg.oauth2-server-uri: http://polaris:8181/api/catalog/v1/oauth/tokens
+iceberg.credential: 0ba0f9eca924fe72:18f97a03c52467f6dcd80fe01b70cd64
+iceberg.scope: PRINCIPAL_ROLE:ALL

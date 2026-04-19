@@ -1,0 +1,63 @@
+site_name: Towards a Streaming Lakehouse
+
+repo_url: https://github.com/markov-ngz/towards_streaming_lakehouse
+
+extra_css:
+  - stylesheets/extra.css
+
+theme:
+  icon:
+    repo: fontawesome/brands/github
+    
+  name: material
+  logo: assets/logo.png
+  favicon: assets/favicon.png
+  palette:
+
+    - scheme: default
+      primary: cyan
+
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.tabs.sticky
+    - content.code.copy
+    - navigation.footer
+    - navigation.instant
+    - navigation.instant.progress
+    
+plugins:
+  - search
+
+extra:
+  generator: false
+  social:
+
+    - icon: fontawesome/brands/github
+      link: https://github.com/markov-ngz
+  
+copyright: >
+  © 2026 markov-ngz. All rights reserved.
+  No part of this documentation may be reproduced, distributed, or transmitted
+  in any form or by any means without prior written permission.
+
+
+markdown_extensions:
+  # HTML markdown for images
+  - attr_list
+  - md_in_html
+  - pymdownx.blocks.caption
+  # Code blocks
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+
+nav:
+  - Home: index.md
+  - Deployment: deployment.md 
+  - Applicative: applicative.md
+  - Use case: use_case.md

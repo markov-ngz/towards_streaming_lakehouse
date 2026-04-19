@@ -1,0 +1,86 @@
+services:
+  coordinator-server:
+    image: apache/fluss:0.9.0-incubating
+    command: coordinatorServer
+    depends_on:
+      zookeeper:
+        condition: service_started
+    environment:
+      FLUSS_PROPERTIES: |
+        zookeeper.address: zookeeper:2181
+
+        bind.listeners: FLUSS://coordinator-server:9123
+        
+        remote.data.dir: s3://${FLUSS_BUCKET}/fluss-remote-data
+
+        s3.access-key: ${AWS_ACCESS_KEY_ID}
+        s3.secret-key: ${AWS_SECRET_ACCESS_KEY}
+        s3.region: ${AWS_REGION}
+
+        datalake.format: iceberg
+        datalake.iceberg.name: dev_iceberg_datalake_catalog
+        datalake.iceberg.warehouse: dev_iceberg_datalake_catalog
+        datalake.iceberg.io-impl: org.apache.iceberg.aws.s3.S3FileIO
+        datalake.iceberg.client.region: ${AWS_REGION}
+
+        datalake.iceberg.type: rest
+        datalake.iceberg.catalog.name : dev_iceberg_datalake_catalog
+        datalake.iceberg.uri: http://polaris:8181/api/catalog
+        datalake.iceberg.rest.auth.type: OAUTH2
+        datalake.iceberg.oauth2-server-uri: http://polaris:8181/api/catalog/v1/oauth/tokens
+        datalake.iceberg.header.X-Iceberg-Access-Delegation: vended-credentials
+        datalake.iceberg.scope : PRINCIPAL_ROLE:ALL
+        datalake.iceberg.credential: 0ba0f9eca924fe72:18f97a03c52467f6dcd80fe01b70cd64
+
+    volumes:
+      - ./fluss/lib/iceberg-aws-1.10.1.jar:/opt/fluss/plugins/iceberg/iceberg-aws-1.10.1.jar
+      - ./fluss/lib/iceberg-aws-bundle-1.10.1.jar:/opt/fluss/plugins/iceberg/iceberg-aws-bundle-1.10.1.jar
+      - ./fluss/lib/fluss-fs-s3-0.9.0-incubating.jar:/opt/fluss/plugins/s3/fluss-fs-s3-0.9.0-incubating.jar
+
+    networks:
+      dynamic-lakehouse:
+
+  tablet-server:
+    image: apache/fluss:0.9.0-incubating
+    command: tabletServer
+    depends_on:
+      - coordinator-server
+    environment:
+      FLUSS_PROPERTIES: |
+        zookeeper.address: zookeeper:2181
+
+        bind.listeners: FLUSS://tablet-server:9123
+        
+        remote.data.dir: s3://${FLUSS_BUCKET}/fluss-remote-data
+
+        s3.access-key: ${AWS_ACCESS_KEY_ID}
+        s3.secret-key: ${AWS_SECRET_ACCESS_KEY}
+        s3.region: ${AWS_REGION}
+
+        datalake.format: iceberg
+        datalake.iceberg.name: dev_iceberg_datalake_catalog
+        datalake.iceberg.warehouse: dev_iceberg_datalake_catalog
+        datalake.iceberg.io-impl: org.apache.iceberg.aws.s3.S3FileIO
+        datalake.iceberg.client.region: ${AWS_REGION}
+
+        datalake.iceberg.type: rest
+        datalake.iceberg.catalog.name : dev_iceberg_datalake_catalog
+        datalake.iceberg.uri: http://polaris:8181/api/catalog
+        datalake.iceberg.rest.auth.type: OAUTH2
+        datalake.iceberg.oauth2-server-uri: http://polaris:8181/api/catalog/v1/oauth/tokens
+        datalake.iceberg.header.X-Iceberg-Access-Delegation: vended-credentials
+        datalake.iceberg.scope : PRINCIPAL_ROLE:ALL
+        datalake.iceberg.credential: 0ba0f9eca924fe72:18f97a03c52467f6dcd80fe01b70cd64
+    networks:
+      dynamic-lakehouse:
+
+
+  zookeeper:
+    image: zookeeper:3.9.2
+    networks:
+      dynamic-lakehouse:
+
+networks:
+  dynamic-lakehouse:
+    name: dynamic-lakehouse
+    external: true

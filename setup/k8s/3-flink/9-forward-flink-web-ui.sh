@@ -1,0 +1,1 @@
+kubectl port-forward -n flink  svc/flink-session-rest 8081:8081

@@ -1,0 +1,78 @@
+services:
+  jobmanager:
+    image: flink:2.2.0-scala_2.12-java17
+
+    ports:
+      - "127.0.0.1:18083:8081"
+      - "127.0.0.1:8083:8083"
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      cp /tmp/jars/*.jar /opt/flink/lib/ 2>/dev/null || true;
+      cp /tmp/opt/*.jar /opt/flink/opt/ 2>/dev/null || true;
+      exec /opt/flink/bin/sql-gateway.sh start-foreground
+      -Dsql-gateway.endpoint.rest.address=0.0.0.0
+      -Dsql-gateway.endpoint.rest.port=8083
+      -Drest.address=jobmanager
+      -Drest.port=8081
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        
+        table.catalog-store.kind: file
+        table.catalog-store.file.path: file:///var/flink/catalog-store/
+
+        workflow-scheduler.type: embedded
+
+        execution.checkpointing.dir:s3://${FLINK_BUCKET}/checkpoints
+        execution.checkpointing.savepoint-dir:s3://${FLINK_BUCKET}/savepoints
+        state.checkpoints.dir: s3://${FLINK_BUCKET}/checkpoints
+        s3.access-key: ${AWS_ACCESS_KEY_ID}
+        s3.secret-key: ${AWS_SECRET_ACCESS_KEY}
+        s3.region: ${AWS_REGION}
+
+    volumes:
+      - ./flink/2-2-lib:/tmp/jars
+      - ./flink/2-2-opt:/tmp/opt
+      - ./flink/catalog-store:/var/flink/catalog-store
+
+    networks:
+      dynamic-lakehouse:
+
+  taskmanager:
+    image: flink:2.2.0-scala_2.12-java17
+    depends_on:
+      - jobmanager
+    entrypoint: ["/bin/bash", "-c"]
+    command: >
+      "cp /tmp/jars/*.jar /opt/flink/lib/ 2>/dev/null || true;
+       cp /tmp/opt/*.jar /opt/flink/opt/ 2>/dev/null || true;
+       /docker-entrypoint.sh taskmanager"
+    environment:
+      - |
+        FLINK_PROPERTIES=
+        jobmanager.rpc.address: jobmanager
+        taskmanager.numberOfTaskSlots: 10
+        taskmanager.memory.process.size: 2048m
+        taskmanager.memory.task.off-heap.size: 128m
+
+        workflow-scheduler.type: embedded
+
+        execution.checkpointing.dir:s3://${FLINK_BUCKET}/checkpoints
+        execution.checkpointing.savepoint-dir:s3://${FLINK_BUCKET}/savepoints
+        state.checkpoints.dir: s3://${FLINK_BUCKET}/checkpoints
+        s3.access-key: ${AWS_ACCESS_KEY_ID}
+        s3.secret-key: ${AWS_SECRET_ACCESS_KEY}
+        s3.region: ${AWS_REGION}
+
+    volumes:
+      - ./flink/2-2-lib:/tmp/jars
+      - ./flink/2-2-opt:/tmp/opt
+
+    networks:
+      dynamic-lakehouse:
+
+networks:
+  dynamic-lakehouse:
+    name: dynamic-lakehouse
+    external: true

@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: polaris
+  annotations:
+    description: Polaris Catalog to write Iceberg tables
+
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fluss
+  annotations:
+    description: Streaming layer with Fluss
+
+--- 
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: flink
+  annotations:
+    description: Compute Engine namespace 
+
+--- 
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: spark
+  annotations:
+    description: Compute Engine namespace 
+
+--- 
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: technical-flink-operator
+  annotations:
+    description: Technical namespace for flink kubernetes operator
+
+--- 
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: technical-spark-operator
+  annotations:
+    description: Technical namespace for spark kubernetes operator

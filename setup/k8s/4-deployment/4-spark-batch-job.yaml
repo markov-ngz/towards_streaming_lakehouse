@@ -1,0 +1,117 @@
+apiVersion: sparkoperator.k8s.io/v1beta2
+kind: SparkApplication
+metadata:
+  name: ingest-campaign
+  namespace: spark
+spec:
+  type: Python
+  pythonVersion: "3"
+  mode: cluster
+  image: spark-iceberg-s3:0.1.0
+  imagePullPolicy: IfNotPresent
+  mainApplicationFile: "s3a://<flink-bucket>/job-artifacts/ingest_campaign.py"
+  sparkVersion: "4.0.2"
+
+  deps:
+    jars:
+      - local:///opt/spark/extra-jars/iceberg-aws-bundle-1.10.1.jar
+      - local:///opt/spark/extra-jars/iceberg-spark-runtime-4.0_2.13-1.10.1.jar
+
+  sparkConf:
+    # --- S3A filesystem config ---
+    spark.hadoop.fs.s3a.impl: "org.apache.hadoop.fs.s3a.S3AFileSystem"
+    spark.hadoop.fs.s3a.aws.credentials.provider: "com.amazonaws.auth.EnvironmentVariableCredentialsProvider"
+    spark.hadoop.fs.s3a.path.style.access: "false"
+
+    spark.driver.userClassPathFirst: "false"
+    spark.executor.userClassPathFirst: "false"
+
+    # --- Iceberg extensions  ---
+    spark.sql.extensions: "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions"
+    spark.sql.defaultCatalog: "rest"
+    spark.sql.catalog.rest: "org.apache.iceberg.spark.SparkCatalog"
+    spark.sql.catalog.rest.type: "rest"
+    spark.sql.catalog.rest.uri: "http://polaris.polaris.svc.cluster.local:8181/api/catalog"
+    spark.sql.catalog.rest.warehouse: "dev_iceberg_datalake_catalog"
+    spark.sql.catalog.rest.auth.type: "oauth2"
+    spark.sql.catalog.rest.oauth2-server-uri: "http://polaris.polaris.svc.cluster.local:8181/api/catalog/v1/oauth/tokens"
+    spark.sql.catalog.rest.scope: "PRINCIPAL_ROLE:ALL"
+    spark.sql.catalog.rest.token-refresh-enabled: "true"
+    spark.sql.catalog.rest.header.X-Iceberg-Access-Delegation: "vended-credentials"
+
+
+  driver:
+    cores: 1
+    memory: 512m
+    serviceAccount: spark-operator-spark
+
+    env:
+      - name: ICEBERG_CATALOG_CREDENTIAL
+        valueFrom:
+          secretKeyRef:
+            name: iceberg-catalog-credentials
+            key: catalog-credential
+
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: access_key_id
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: secret_access_key
+            
+      - name: AWS_REGION
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: region
+
+    securityContext:
+      capabilities:
+        drop: ["ALL"]
+      runAsUser: 185
+      runAsGroup: 185
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault
+
+  executor:
+    instances: 1
+    cores: 1
+    memory: 512m
+    env:
+      - name: ICEBERG_CATALOG_CREDENTIAL
+        valueFrom:
+          secretKeyRef:
+            name: iceberg-catalog-credentials
+            key: catalog-credential
+
+      - name: AWS_ACCESS_KEY_ID
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: access_key_id
+      - name: AWS_SECRET_ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: secret_access_key
+            
+      - name: AWS_REGION
+        valueFrom:
+          secretKeyRef:
+            name: aws-secret
+            key: region
+    securityContext:
+      capabilities:
+        drop: ["ALL"]
+      runAsUser: 185
+      runAsGroup: 185
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      seccompProfile:
+        type: RuntimeDefault

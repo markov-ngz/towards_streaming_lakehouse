@@ -1,0 +1,28 @@
+services:
+
+  spark-master:
+    image: spark-iceberg-s3:0.1.0
+    container_name: spark-master
+    command: >
+      /opt/spark/bin/spark-class org.apache.spark.deploy.master.Master
+    ports:
+      - "127.0.0.1:7077:7077"
+      - "127.0.0.1:8080:8080"
+    networks:
+      dynamic-lakehouse:
+      
+  spark-worker:
+    image: spark-iceberg-s3:0.1.0
+    depends_on:
+      - spark-master
+    command: >
+      /opt/spark/bin/spark-class org.apache.spark.deploy.worker.Worker spark://spark-master:7077
+    environment:
+      - SPARK_WORKER_MEMORY=2g
+    networks:
+      dynamic-lakehouse:
+
+networks:
+  dynamic-lakehouse:
+    name: dynamic-lakehouse
+    external: true

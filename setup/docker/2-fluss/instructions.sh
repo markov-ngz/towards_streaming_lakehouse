@@ -1,0 +1,1 @@
+docker compose -f fluss.docker-compose.yaml up -d

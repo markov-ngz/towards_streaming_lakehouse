@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: iceberg-catalog-credentials
+  namespace: spark
+type: Opaque
+stringData:
+  catalog-credential: "80237567e775c9ce:d43ccb716447b2dce839a36effb16ecc"

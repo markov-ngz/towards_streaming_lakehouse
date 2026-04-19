@@ -1,0 +1,8 @@
+List of dependencies needed for the Fluss Cluster
+```sh
+fluss
+└── lib
+    ├── fluss-fs-s3-0.9.0-incubating.jar
+    ├── iceberg-aws-1.10.1.jar
+    └── iceberg-aws-bundle-1.10.1.jar
+```

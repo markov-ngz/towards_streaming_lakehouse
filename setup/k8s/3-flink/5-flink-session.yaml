@@ -1,0 +1,67 @@
+apiVersion: flink.apache.org/v1beta1
+kind: FlinkDeployment
+metadata:
+  name: flink-session
+  namespace: flink
+  labels:
+    app: flink-session
+spec:
+  image: flink-fluss-iceberg-s3:2.2.0
+  flinkVersion: v2_2
+  serviceAccount: flink
+  flinkConfiguration:
+    
+    taskmanager.numberOfTaskSlots: 10
+    execution.checkpointing.dir:s3: s3://<flink-bucket>/checkpoints
+    execution.checkpointing.savepoint-dir:s3: s3://<flink-bucket>/savepoints
+    state.checkpoints.dir: s3://<flink-bucket>/checkpoints
+    table.catalog-store.kind: file
+    table.catalog-store.file.path: file:///var/flink/catalog-store/
+
+  podTemplate:
+      spec:
+        containers:
+          - name: flink-main-container
+            env:
+              - name: AWS_ACCESS_KEY_ID
+                valueFrom:
+                  secretKeyRef:
+                    name: aws-secret
+                    key: access_key_id
+              - name: AWS_SECRET_ACCESS_KEY
+                valueFrom:
+                  secretKeyRef:
+                    name: aws-secret
+                    key: secret_access_key
+                    
+              - name: AWS_REGION
+                valueFrom:
+                  secretKeyRef:
+                    name: aws-secret
+                    key: region
+  jobManager:
+    resource:
+      memory: "2048mb" 
+      cpu: 0.5
+    podTemplate:
+      spec:
+        containers:
+          - name: flink-main-container
+            volumeMounts:
+              - name:  fluss-iceberg
+                mountPath: /var/flink/catalog-store/fluss_iceberg.yaml
+                subPath: fluss_iceberg.yaml
+              - name: rest-iceberg-catalog
+                mountPath: /var/flink/catalog-store/rest_iceberg.yaml
+                subPath: rest_iceberg.yaml
+        volumes:
+          - name: fluss-iceberg
+            configMap:
+              name: fluss-iceberg
+          - name: rest-iceberg-catalog
+            configMap:
+              name: rest-iceberg-catalog
+  taskManager:
+    resource:
+      memory: "2048mb" 
+      cpu: 0.5

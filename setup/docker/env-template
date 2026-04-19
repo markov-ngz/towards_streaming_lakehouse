@@ -1,0 +1,7 @@
+export AWS_REGION=
+export AWS_SECRET_ACCESS_KEY=
+export AWS_ACCOUNT_ID=
+
+export FLINK_BUCKET=
+export FLUSS_BUCKET=
+export ICEBERG_BUCKET=

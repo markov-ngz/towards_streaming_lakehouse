@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flink-sql-gateway
+  namespace: flink
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flink-sql-gateway
+      component: jobmanager
+  template:
+    metadata:
+      labels:
+        app: flink-sql-gateway
+        component: jobmanager
+    spec:
+      containers:
+      - name: flink-sql-gateway
+        image: flink-fluss-iceberg-s3:2.2.0
+        imagePullPolicy: Never
+        command: ["/bin/sh", "-c"]
+        # Somehow config was not loaded so loading it manually with the cmd overridden cmd 
+        args: 
+          - |
+            /opt/flink/bin/sql-gateway.sh start-foreground \
+            -Dsql-gateway.endpoint.rest.address=0.0.0.0 \
+            -Dsql-gateway.endpoint.rest.port=8083 \
+            -Drest.address=http://flink-session-rest.flink.svc.local \
+            -Drest.port=8081 \
+            -Dexecution.target=kubernetes-session \
+            -Dkubernetes.cluster-id=flink-session \
+            -Dkubernetes.namespace=flink \
+            -Dtable.catalog-store.kind=file \
+            -Dtable.catalog-store.file.path=file:///var/flink/catalog-store/ \
+            -Dworkflow-scheduler.type=embedded
+        ports:
+        - containerPort: 8083
+          name: sql-gateway
+        env:
+          - name: FLINK_PROPERTIES
+            valueFrom:
+              configMapKeyRef:
+                name: flink-sql-gateway-properties
+                key: FLINK_PROPERTIES
+        volumeMounts:
+          - name: fluss-iceberg
+            mountPath: /var/flink/catalog-store/fluss_iceberg.yaml
+            subPath: fluss_iceberg.yaml
+          - name: rest-iceberg-catalog
+            mountPath: /var/flink/catalog-store/rest_iceberg.yaml
+            subPath: rest_iceberg.yaml
+        resources:
+        
+      volumes:
+        - name: fluss-iceberg
+          configMap:
+            name: fluss-iceberg
+        - name: rest-iceberg-catalog
+          configMap:
+            name: rest-iceberg-catalog

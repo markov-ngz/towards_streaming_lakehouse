@@ -1,0 +1,64 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: fluss-iceberg
+  namespace: flink
+data:
+  fluss_iceberg.yaml: |
+    type: fluss
+    bootstrap.servers: coordinator-server-hs.fluss.svc.cluster.local:9123
+    iceberg.io-impl: org.apache.iceberg.aws.s3.S3FileIO
+    iceberg.catalog.name: dev_iceberg_datalake_catalog
+    iceberg.warehouse: dev_iceberg_datalake_catalog
+    iceberg.s3.region: eu-north-1
+    iceberg.type: rest
+    iceberg.rest.auth.type: OAUTH2
+    iceberg.uri: http://polaris.polaris.svc.cluster.local:8181/api/catalog
+    iceberg.oauth2-server-uri: http://polaris.polaris.svc.cluster.local:8181/api/catalog/v1/oauth/tokens
+    iceberg.credential: 80237567e775c9ce:d43ccb716447b2dce839a36effb16ecc
+    iceberg.scope: PRINCIPAL_ROLE:ALL
+
+--- 
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rest-iceberg-catalog
+  namespace: flink
+  labels:
+    app: flink
+data:
+  rest_iceberg.yaml: |
+    type: iceberg
+    catalog-type: rest
+    catalog.name: dev_iceberg_datalake_catalog
+    warehouse: dev_iceberg_datalake_catalog
+    io-impl: org.apache.iceberg.aws.s3.S3FileIO
+    header.X-Iceberg-Access-Delegation: vended-credentials
+    s3.region: eu-north-1
+    rest.auth.type: OAUTH2
+    uri: http://polaris.polaris.svc.cluster.local:8181/api/catalog
+    oauth2-server-uri: http://polaris.polaris.svc.cluster.local:8181/api/catalog/v1/oauth/tokens
+    credential: 80237567e775c9ce:d43ccb716447b2dce839a36effb16ecc
+    scope: PRINCIPAL_ROLE:ALL
+    client.region: eu-north-1
+
+--- 
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: flink-sql-gateway-properties
+  namespace: flink
+  labels:
+    app: flink
+data:
+  FLINK_PROPERTIES: |
+    kubernetes.namespace: flink 
+    kubernetes.cluster-id: flink-session
+    execution.target: kubernetes-session
+    table.catalog-store.kind: file
+    table.catalog-store.file.path: file:///var/flink/catalog-store/
+    workflow-scheduler.type: embedded
+    rest.address: flink-session-rest
+    rest.port: 8081

@@ -1,0 +1,4 @@
+helm
+.venv
+aws-secret.yaml
+.env

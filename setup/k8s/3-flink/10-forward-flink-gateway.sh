@@ -1,0 +1,1 @@
+kubectl port-forward -n flink svc/flink-sql-gateway 8083:8083
